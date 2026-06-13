@@ -6,11 +6,11 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use axum::{Json, Router, routing::get};
+use axum::{Json, Router};
 use tokio::net::TcpListener;
 use uuid::Uuid;
 
-use crate::state::user::User;
+use crate::{routes::user_service_router, state::user::User};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -28,8 +28,8 @@ async fn main() {
 
     let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
     let router = Router::new()
-        .with_state(app_state.clone())
-        .route("/health", get(health));
+        .nest("/api", user_service_router())
+        .with_state(app_state.clone());
 
     axum::serve(listener, router).await.unwrap();
 }

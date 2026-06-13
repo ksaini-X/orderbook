@@ -1,23 +1,18 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
-
 use axum::{Json, extract::State};
 use rust_decimal::dec;
 use shared::user_service::{error::BalanceError, incoming::LockRequest};
-use uuid::Uuid;
 
-use crate::state::user::User;
+use crate::AppState;
 
 pub async fn lock(
-    State(state): State<Arc<RwLock<HashMap<Uuid, User>>>>,
+    State(state): State<AppState>,
     Json(payload): Json<LockRequest>,
 ) -> Result<(), BalanceError> {
     if payload.amount <= dec!(0) {
         return Err(BalanceError::InvalidAmount);
     }
     let mut state = state
+        .cache
         .write()
         .or_else(|_| Err(BalanceError::StateReadingFailed))?;
 
@@ -45,18 +40,15 @@ mod tests {
     use shared::user_service::{error::BalanceError, incoming::LockRequest};
     use uuid::Uuid;
 
-    use crate::{routes::lock_request::lock, state::user::User};
+    use crate::{AppState, routes::lock_request::lock, state::user::User};
 
-    fn make_state(user: User) -> Arc<RwLock<HashMap<Uuid, User>>> {
+    fn make_state(user: User) -> AppState {
         let users = Arc::new(RwLock::new(HashMap::new()));
         users.write().unwrap().insert(user.user_id, user);
-        users
+        AppState { cache: users }
     }
-    fn get_user(
-        user_id: Uuid,
-        state: Arc<RwLock<HashMap<Uuid, User>>>,
-    ) -> Result<User, BalanceError> {
-        let state = state.read().unwrap();
+    fn get_user(user_id: Uuid, state: AppState) -> Result<User, BalanceError> {
+        let state = state.cache.read().unwrap();
         match state.get(&user_id) {
             None => Err(BalanceError::UserNotFound),
             Some(user) => Ok(user.clone()),
