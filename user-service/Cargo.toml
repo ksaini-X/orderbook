@@ -10,3 +10,6 @@ serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.52.3", features = ["full"] }
 uuid = { version = "1.23.3", features = ["serde", "v4"] }
 shared = { path = "../shared" }
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "macros"] }
+chrono = "0.4.45"
+diesel = { version = "2.3.10", features = ["postgres", "r2d2"] }

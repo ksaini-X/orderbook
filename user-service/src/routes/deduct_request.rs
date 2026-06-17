@@ -20,7 +20,7 @@ pub async fn deduct(
         return Err(BalanceError::UserNotFound);
     }
 
-    if state.get(&payload.from).unwrap().available_balance > payload.amount {
+    if state.get(&payload.from).unwrap().available_balance < payload.amount {
         return Err(BalanceError::InsufficientFunds);
     }
     state.get_mut(&payload.from).unwrap().available_balance -= payload.amount;
