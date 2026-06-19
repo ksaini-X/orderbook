@@ -10,7 +10,7 @@ pub async fn market_task(
     market_name: String,
     mut rx: mpsc::Receiver<EngineMessage>,
 ) {
-    let mut book = Orderbook::new(market_name); // book lives here, nowhere else
+    let mut book = Orderbook::new(market_name);
 
     loop {
         match rx.recv().await {

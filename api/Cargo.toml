@@ -14,3 +14,4 @@ tower = "0.5.3"
 tower-http = "0.7.0"
 uuid = { version = "1.23.3", features = ["serde", "v4"] }
 shared = {path = "../shared"}
+jsonwebtoken = "10.4.0"

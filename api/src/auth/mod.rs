@@ -1,2 +1,2 @@
-pub mod admin;
-pub mod user;
+pub mod login;
+pub mod register;
