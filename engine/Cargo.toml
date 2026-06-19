@@ -9,3 +9,4 @@ rust_decimal = { version = "1.42.1", features = ["macros"] }
 serde = { version = "1.0.228", features = ["derive"] }
 uuid = { version = "1.23.3", features = ["v4"] }
 shared ={ path = "../shared"}
+tokio = { version = "1.52.3", features = ["full"] }
