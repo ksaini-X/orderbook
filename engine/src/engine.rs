@@ -1,16 +1,18 @@
-use std::collections::HashMap;
-
+use crate::{error::EngineError, market_task::market_task, messages::EngineMessage};
+use chrono::{DateTime, Utc};
 use shared::engine::order::Order;
+use std::collections::HashMap;
 use tokio::sync::mpsc;
 use uuid::Uuid;
-
-use crate::{market_task::market_task, messages::EngineMessage};
 
 #[derive(Debug, Clone)]
 pub struct Market {
     pub market_id: Uuid,
     pub market_name: String,
     pub sender: mpsc::Sender<EngineMessage>,
+    pub created_at: DateTime<Utc>,
+    pub creator: Uuid,
+    pub active: bool,
 }
 
 pub struct Engine {
@@ -23,28 +25,47 @@ impl Engine {
             markets: HashMap::new(),
         }
     }
-    pub fn create_market(&mut self, market_name: String) -> Uuid {
+
+    pub fn create_market(
+        &mut self,
+        market_name: String,
+        creator_id: Uuid,
+    ) -> (Uuid, DateTime<Utc>) {
         let (tx, rx) = mpsc::channel::<EngineMessage>(1024);
         let market_id = Uuid::new_v4();
-        let market = Market {
-            market_name: market_name.clone(),
+        let timestamp = Utc::now();
+
+        self.markets.insert(
             market_id,
-            sender: tx,
-        };
-        self.markets.insert(market_id, market);
+            Market {
+                market_name: market_name.clone(),
+                market_id,
+                sender: tx,
+                created_at: timestamp,
+                creator: creator_id,
+                active: true,
+            },
+        );
 
         tokio::spawn(market_task(market_id, market_name, rx));
-
-        market_id
+        (market_id, timestamp)
     }
 
-    pub async fn place_order(&self, market_id: Uuid, order: Order) {
-        if let Some(market) = self.markets.get(&market_id) {
-            market
-                .sender
-                .send(EngineMessage::PlaceOrder(order))
-                .await
-                .ok();
-        }
+    pub fn delete_market(&mut self, market_id: Uuid) -> Result<DateTime<Utc>, EngineError> {
+        self.markets
+            .remove(&market_id)
+            .ok_or(EngineError::MarketNotFound)?;
+        Ok(Utc::now())
+    }
+
+    pub fn pause_market(&mut self, market_id: Uuid) -> Result<DateTime<Utc>, EngineError> {
+        let (_, market) = self
+            .markets
+            .iter_mut()
+            .find(|(&m_id, _)| m_id == market_id)
+            .ok_or(EngineError::MarketNotFound)?;
+
+        market.active = false;
+        Ok(Utc::now())
     }
 }
