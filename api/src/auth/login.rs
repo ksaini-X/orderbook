@@ -2,18 +2,15 @@ use axum::Json;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
-    error::APIError,
-    middleware::{jwt::generate_jwt, user},
-};
+use crate::{error::APIError, middleware::jwt::generate_jwt};
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LoginRequestData {
     email: String,
     password: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LoginResponseData {
     jwt: String,
 }
@@ -24,6 +21,8 @@ pub async fn login(
     //TODO: DB call to get user
     let user_id = Uuid::new_v4();
     let role = crate::middleware::jwt::Role::Admin;
-    let jwt = generate_jwt(user_id, role)?;
+    let jwt = generate_jwt(user_id, role)
+        .map_err(|_| APIError::ServiceUnavailable)
+        .unwrap();
     Ok(Json(LoginResponseData { jwt }))
 }

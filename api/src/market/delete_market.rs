@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use axum::{Json, extract::State};
-use chrono::{DateTime, Utc};
+use axum::{Extension, Json, extract::State};
+use chrono::{Date, DateTime, Utc};
 use futures::StreamExt;
 use redis::Msg;
 use serde::{Deserialize, Serialize};
@@ -25,10 +25,11 @@ pub struct DeleteMarketResponseData {
     market_id: Uuid,
     user_id: Uuid,
     deleted: bool,
+    timestamp: DateTime<Utc>,
 }
 
 pub async fn delete_market(
-    Extension(role): Extension(Role),
+    Extension(role): Extension<Role>,
     State(state): State<AppState>,
     Json(payload): Json<DeleteMarketRequestData>,
 ) -> Result<Json<DeleteMarketResponseData>, APIError> {
@@ -46,22 +47,22 @@ pub async fn delete_market(
                     },
                 )
                 .await;
-            let pubsub = state.redis.get_async_pubsub().await.unwrap();
+            let mut pubsub = state.redis.get_async_pubsub().await.unwrap();
 
             pubsub
                 .subscribe(&format!("market:deleted:{}", client_id))
                 .await
                 .unwrap();
 
-            let stream = pubsub.on_message();
+            let mut stream = pubsub.on_message();
 
-            let msg = tokio::time::timeout(Duration::from_secs(5), stream.next()).await;
+            let mut msg = tokio::time::timeout(Duration::from_secs(5), stream.next()).await;
 
             match msg {
                 Ok(Some(m)) => {
                     let payload: String = m.get_payload().unwrap();
                     let data: DeleteMarketResponseData = serde_json::from_str(&payload).unwrap();
-                    Ok(Json(DeleteMarketResponseData))
+                    Ok(Json(data))
                 }
                 _ => {
                     return Err(APIError::ServiceUnavailable);

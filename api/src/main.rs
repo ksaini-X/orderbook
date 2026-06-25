@@ -8,7 +8,6 @@ use tokio::net::TcpListener;
 use crate::market::market_router;
 
 pub mod auth;
-pub mod constants;
 pub mod error;
 pub mod market;
 pub mod middleware;

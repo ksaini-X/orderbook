@@ -1,6 +1,7 @@
 use crate::{AppState, error::APIError, middleware::jwt::Role};
 use axum::{Extension, Json, extract::State};
 use chrono::{DateTime, Utc};
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use shared::constants::TOPIC_MARKETS;
 use std::sync::Arc;
@@ -54,7 +55,8 @@ pub async fn create_market(
                 .unwrap();
 
             let mut stream = pubsub.on_message();
-            let msg = tokio::time::timeout(std::time::Duration::from_secs(5), stream.next()).await;
+            let mut msg =
+                tokio::time::timeout(std::time::Duration::from_secs(5), stream.next()).await;
 
             match msg {
                 Ok(Some(m)) => {
