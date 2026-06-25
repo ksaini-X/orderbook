@@ -12,9 +12,9 @@ pub enum Role {
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
-    pub user_id: Uuid, // user_id
+    pub user_id: Uuid,
     pub role: Role,
-    pub exp: usize, // expiry timestamp
+    pub exp: usize,
 }
 
 pub fn generate_jwt(user_id: Uuid, role: Role) -> Result<String, jsonwebtoken::errors::Error> {
@@ -22,7 +22,7 @@ pub fn generate_jwt(user_id: Uuid, role: Role) -> Result<String, jsonwebtoken::e
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs()
-        + 60 * 60 * 24; // 24 hours
+        + 60 * 60 * 24;
 
     let claims = Claims {
         user_id,

@@ -4,6 +4,7 @@ use serde::Serialize;
 #[derive(Serialize, Debug)]
 pub enum APIError {
     Unauthorized,
+    ServiceUnavailable,
 }
 #[derive(Serialize)]
 struct ErrorBody {
@@ -14,6 +15,7 @@ impl IntoResponse for APIError {
     fn into_response(self) -> axum::response::Response {
         let (status_code, msg) = match self {
             APIError::Unauthorized => (StatusCode::BAD_REQUEST, "Invalid user role"),
+            APIError::ServiceUnavailable => (StatusCode::BAD_REQUEST, "ServiceUnavailable"),
         };
 
         (

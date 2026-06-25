@@ -1,20 +1,20 @@
 use rdkafka::ClientConfig;
 use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::message::Message;
-use serde::de::{Deserialize, DeserializeOwned};
+use serde::de::DeserializeOwned;
 
 pub struct KafkaConsumer {
     inner: StreamConsumer,
 }
 impl KafkaConsumer {
-    pub fn new(broker: &str, group_id: &str, topic: &str) -> Self {
+    pub fn new(broker: &str, group_id: &str, topic: [&str; 4]) -> Self {
         let inner: StreamConsumer = ClientConfig::new()
             .set("bootstrap.server", broker)
             .set("group_id", group_id)
             .set("auto.offset.reset", "earliest")
             .create()
             .expect("Failed to create consumer");
-        inner.subscribe(&[topic]).unwrap();
+        inner.subscribe(&topic).unwrap();
         Self { inner }
     }
 

@@ -1,19 +1,18 @@
 use rdkafka::ClientConfig;
 use rdkafka::producer::{FutureProducer, FutureRecord};
-use serde::Serialize;
 pub struct KafkaProducer {
     inner: FutureProducer,
 }
 impl KafkaProducer {
     pub fn new(broker: &str) -> Self {
         let inner = ClientConfig::new()
-            .set("bootstrap.server", broker)
+            .set("bootstrap.servers", broker)
             .create()
             .expect("Failed to create producer");
         Self { inner }
     }
 
-    pub async fn publish(&self, topic: &str, key: &str, payload: &T) {
+    pub async fn publish<T: serde::Serialize>(&self, topic: &str, key: &str, payload: &T) {
         let payload = serde_json::to_string(payload).unwrap();
         self.inner
             .send(
