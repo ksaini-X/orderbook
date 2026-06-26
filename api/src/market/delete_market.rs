@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use axum::{Extension, Json, extract::State};
 use chrono::{Date, DateTime, Utc};
@@ -30,7 +30,7 @@ pub struct DeleteMarketResponseData {
 
 pub async fn delete_market(
     Extension(role): Extension<Role>,
-    State(state): State<AppState>,
+    State(state): State<Arc<AppState>>,
     Json(payload): Json<DeleteMarketRequestData>,
 ) -> Result<Json<DeleteMarketResponseData>, APIError> {
     match role {

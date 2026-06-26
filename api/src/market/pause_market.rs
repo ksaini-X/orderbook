@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use crate::{AppState, error::APIError, middleware::jwt::Role};
 use axum::{Extension, Json, extract::State};
@@ -31,7 +31,7 @@ pub struct PauseMarketEvent {
 pub async fn pause_market(
     Extension(role): Extension<Role>,
     Extension(user_id): Extension<Uuid>,
-    State(state): State<AppState>,
+    State(state): State<Arc<AppState>>,
     Json(payload): Json<PauseMarketRequestData>,
 ) -> Result<Json<PauseMarketResponseData>, APIError> {
     match role {

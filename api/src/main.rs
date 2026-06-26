@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::Router;
-use redis::Client;
+use redis::{AsyncCommands, Client};
 use shared::kafka::producer::KafkaProducer;
 use tokio::net::TcpListener;
 
@@ -21,7 +21,11 @@ pub struct AppState {
 #[tokio::main]
 async fn main() {
     let kafka_broker = "";
-    let redis_client = redis::Client::open("params").unwrap();
+    let redis_client = redis::Client::open("redis://127.0.0.1:6379").unwrap();
+    let mut conn = redis_client
+        .get_multiplexed_async_connection()
+        .await
+        .unwrap();
 
     let shared_state = Arc::new(AppState {
         kafka_producer: KafkaProducer::new(kafka_broker),

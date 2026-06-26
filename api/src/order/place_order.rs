@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::{AppState, error::APIError};
 use axum::{Extension, Json, extract::State};
+use chrono::{DateTime, Utc};
 use futures::StreamExt;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -61,8 +62,8 @@ pub async fn place_order(
 
     match msg {
         Ok(Some(m)) => {
-            let data = m.get_payload().unwrap();
-            let payload: PlaceOrderResponseData = serde_json::from_str(data).unwrap();
+            let data: String = m.get_payload().unwrap();
+            let payload: PlaceOrderResponseData = serde_json::from_str(&data).unwrap();
             Ok(Json(payload))
         }
         _ => Err(APIError::ServiceUnavailable),

@@ -52,8 +52,8 @@ pub async fn cancel_order(
 
     match msg {
         Ok(Some(m)) => {
-            let data = m.get_payload().unwrap();
-            let payload: CancelOrderResponseData = serde_json::from_str(data).unwrap();
+            let data: String = m.get_payload().unwrap();
+            let payload: CancelOrderResponseData = serde_json::from_str(&data).unwrap();
             Ok(Json(payload))
         }
         _ => Err(APIError::ServiceUnavailable),
